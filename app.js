@@ -33,7 +33,7 @@ app.post('/login', (req, res)=>{
         req.session.user = req.body.mail;
         res.redirect('/content');
       }else{
-        res.sendFile(__dirname+'/login.html');
+        res.redirect('?invalid');
       }
 })
 
