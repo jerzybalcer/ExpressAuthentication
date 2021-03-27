@@ -1,5 +1,7 @@
 const express = require('express');
 const session = require('express-session');
+const Account = require('./accountSchema');
+const mongoDB = require('./database');
 
 const app = express();
 
@@ -28,13 +30,14 @@ app.get('/content', checkLogin, (req, res)=>{
 })
 
 app.post('/login', (req, res)=>{
-    if(req.body.email === "123" && req.body.pass === "123"){
+
+    Account.findOne({email: req.body.email, pass: req.body.pass}, (error, account)=>{
+        if(error || !account) return res.redirect('?invalid');
+        
         req.session.logged = true;
-        req.session.user = req.body.mail;
+        req.session.user = req.body.email;
         res.redirect('/content');
-      }else{
-        res.redirect('?invalid');
-      }
+    })
 })
 
 app.listen(app.get('port'), ()=>{
