@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const Account = require('./accountSchema');
 const mongoDB = require('./database');
+const mailer = require('./mailer');
 
 const app = express();
 
@@ -38,6 +39,20 @@ app.post('/login', (req, res)=>{
         req.session.user = req.body.email;
         res.redirect('/content');
     })
+})
+
+app.post('/register', (req, res)=>{
+
+  Account.findOne({email: req.body.email}, (error, account)=>{
+      if(error) return res.send('error');
+      if(account) return res.send('exists');
+      else{
+        const newAccount = new Account({email: req.body.email, pass: req.body.pass, activated: false});
+        newAccount.save(()=>{
+          res.send('created');
+        })
+      }
+  })
 })
 
 app.listen(app.get('port'), ()=>{

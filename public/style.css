@@ -2,6 +2,23 @@
     text-align: center;
 }
 
-#loginHeader {
+.headers {
     font-size: 36px;
+}
+
+#forms {
+    display: inline-block;
+    min-width: 40%;
+}
+
+#help {
+    position: absolute;
+    display: inline-block;
+    margin-left: 15%;
+}
+
+a {
+    margin-top: 10%;
+    display: block;
+    color: black;
 }

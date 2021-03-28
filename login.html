@@ -3,22 +3,52 @@
         <title>Express Authentication Example</title>
         <link rel="stylesheet" href="style.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script src="loginCheck.js"></script>
+        <script src="formsSwitch.js"></script>
+        <script src="formCheck.js"></script>
+        <script src="registerHandler.js"></script>
     </head>
 
 <body>
     <div id='container'>
-        <p id='loginHeader'>Sign in</p>
 
-        <form id='login' action='/login' method='POST'>
-            <label for='email'>e-mail</label><br>
-            <input type='text' id='email' name='email' placeholder='example@email.com'><br>
-            <label for='pass'>password</label><br>
-            <input type='password' id='pass' name='pass' placeholder='password'><br><br>
+        <div id='forms'>
+            <p id='formsHeader' class='headers'>Sign in</p>
 
-            <input id='submit' type='submit' value='Sign in'>
+            <form id='login' action='/login' method='POST' class='form'>
+                <label for='email'>e-mail</label><br>
+                <input type='text' id='email' name='email' placeholder='example@email.com'><br>
+                <label for='pass'>password</label><br>
+                <input type='password' id='pass' name='pass' placeholder='password'><br><br>
 
-        </form>
+                <input id='submit' type='submit' value='Sign in'>
+            </form>
+
+            <form id='register' action='/register' method='POST' class='form' hidden>
+                <label for='email'>e-mail</label><br>
+                <input type='text' id='email' name='email' placeholder='example@email.com'><br>
+                <label for='pass'>password</label><br>
+                <input type='password' id='pass' name='pass' placeholder='password'><br>
+                <label for='passConfirm'>confirm password</label><br>
+                <input type='password' id='passConfirm' placeholder='password'><br><br>
+
+                <input id='submit' type='submit' value='Sign up'>
+            </form>
+
+            <form id='resetPass' action='/resetPass' method='POST' class='form' hidden>
+                <label for='email'>e-mail</label><br>
+                <input type='text' id='email' name='email' placeholder='example@email.com'><br><br>
+
+                <input id='submit' type='submit' value='Send reset link'>
+            </form>
+        </div>
+
+        <div id='help'>
+            <p id='helpHeader' class='headers'>Need Help?</p>
+            <a id='showRegister' href='javascript:void(0);' class='switchForm'>I don't have an account</a>
+            <a id='showResetPass' href='javascript:void(0);' class='switchForm'>I forgot my password</a>
+            <a id='showLogin' href='javascript:void(0);' class='switchForm'>I have an account. Let me log in</a>
+        </div>
+        
     </div>
 </body>
 
