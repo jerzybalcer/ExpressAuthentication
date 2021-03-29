@@ -55,8 +55,12 @@ app.post('/register', (req, res)=>{
   Account.findOne({email: req.body.email}, async(error, account)=>{
       if(error) return res.send('error');
       if(account) return res.send('exists');
-      
-      const newAccount = new Account({email: req.body.email, pass: (await bcrypt.hash(req.body.pass, 10)), activationKey: (await generateToken()), activated: false});
+
+      const newAccount = new Account({
+        email: req.body.email,
+        pass: (await bcrypt.hash(req.body.pass, 10)),
+        activationKey: (await generateToken()), keyExpires: Date.now() + 1800000 /*30 minutes*/, activated: false
+      });
 
       newAccount.save(()=>{
 
@@ -69,8 +73,9 @@ app.post('/register', (req, res)=>{
 
 app.get('/activate', (req,res)=>{
     Account.findOne({activationKey: req.query.key}, (error, account)=>{
-        if(account){
+        if(account && account.keyExpires>Date.now()){
           account.activated = true;
+          account.activationKey = '';
           account.save();
           res.send('Account activated!');
         }else res.send('The link has expired or there is no such account!');
@@ -99,7 +104,8 @@ function sendActivationMail(recipient, url){
     text: `Welcome! You can activate your account here: http://${url}`,
     html: `<div>
               <h1>Welcome!</h1>
-              To activate your account click <a href='http://${url}'>here</a>
+              To activate your account click <a href='http://${url}'>here</a><br>
+              (The link is only active for 30 minutes)
             </div>`
   })
 }

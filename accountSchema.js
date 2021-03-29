@@ -5,6 +5,7 @@ let accountSchema = new mongoose.Schema({
     email: String,
     pass: String,
     activationKey: String,
+    keyExpires: Number,
     activated: Boolean
 })
 
