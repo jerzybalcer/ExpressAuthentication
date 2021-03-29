@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 let accountSchema = new mongoose.Schema({
     email: String,
     pass: String,
+    activationKey: String,
     activated: Boolean
 })
 
