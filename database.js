@@ -9,5 +9,5 @@ mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true});
 
 // Display information about connection
 const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'database connection error:'));
-db.once('open', function() { console.log('database connected!') });
+db.on('error', console.error.bind(console, '[MongoDB] Database connection error:'));
+db.once('open', function() { console.log('[MongoDB] Database connected!') });

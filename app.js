@@ -6,6 +6,8 @@ const Account = require('./accountSchema');
 const mongoDB = require('./database');
 const mailer = require('./mailer');
 
+const thirtyMinutes = 1800000;
+
 /* WEB SERVER CONFIG */
 
 const app = express();
@@ -22,101 +24,120 @@ app.use(session({
 	saveUninitialized: true
 }));
 
+
 /* ROUTES */
 
+// main page, if logged in show user's content
 app.get('/', checkLogin, (req, res)=>{
     res.sendFile(__dirname+'/content.html');
 })
 
+// login page
 app.get('/login', (req, res)=>{
     res.sendFile(__dirname+'/login.html');
 })
 
+// user's content
 app.get('/content', checkLogin, (req, res)=>{
     res.sendFile(__dirname+'/content.html');
 })
 
+// login form handler
 app.post('/login', (req, res)=>{
 
     Account.findOne({email: req.body.email}, async(error, account)=>{
 
-        if(error || !account) return res.redirect('?invalid');
+        if(error || !account) return res.redirect('?invalid'); // there's no such account or error was thrown while searching database
 
+        // check if the found account has the same password as entered by user
         if(account && (await bcrypt.compare(req.body.pass, account.pass))==false) return res.redirect('?invalid');
         
+        // passwords are matching, flag session as logged and redirect to user's content
         req.session.logged = true;
         req.session.user = req.body.email;
         res.redirect('/content');
     })
 })
 
+// register form handler
 app.post('/register', (req, res)=>{
 
-  Account.findOne({email: req.body.email}, async(error, account)=>{
+  Account.findOne({email: req.body.email}, async(error, account)=>{ // check if the mail is already in database
       if(error) return res.send('error');
       if(account) return res.send('exists');
 
+      // create new account
       const newAccount = new Account({
         email: req.body.email,
         pass: (await bcrypt.hash(req.body.pass, 10)),
-        activationKey: (await generateToken()), keyExpires: Date.now() + 1800000 /*30 minutes*/, activated: false
+        token: (await generateToken()), tokenExpires: Date.now() + thirtyMinutes, activated: false
       });
 
+      // save the account to database and send activation link via mail
       newAccount.save(()=>{
 
-        sendActivationMail(req.body.email, req.headers.host + '/activate?key=' + newAccount.activationKey);
+        mailer.sendActivationMail(req.body.email, req.headers.host + '/authorize?action=activate&token=' + newAccount.token);
         res.send('created');
       })
-      
   })
 })
 
-app.get('/activate', (req,res)=>{
-    Account.findOne({activationKey: req.query.key}, (error, account)=>{
-        if(account && account.keyExpires>Date.now()){
-          account.activated = true;
-          account.activationKey = '';
+// send password reset link
+app.post('/resetPass', (req, res)=>{
+    Account.findOne({email: req.body.email}, async(error, account)=>{
+        if(account){ // can't assign authorize token to non-existing account
+          // generate password reset authorize token, then save it to database and send it via mail
+          account.token = await generateToken();
+          account.tokenExpires = Date.now() + thirtyMinutes;
           account.save();
-          res.send('Account activated!');
+          mailer.sendResetMail(req.body.email, req.headers.host + '/authorize?action=reset&token=' + account.token);
+        }
+    })
+    res.sendStatus(200); // send OK anyway
+})
+
+// handle authorize url
+app.get('/authorize', (req, res)=>{
+    Account.findOne({token: req.query.token}, (error, account)=>{
+        if(account && account.tokenExpires>Date.now()){ // check if token is valid
+
+          if(req.query.action == 'activate'){ // activate account
+            account.activated = true;
+            res.send('Account activated!');
+          }else if(req.query.action == 'reset'){ // reset password
+            res.send('You will be able to set your new password here in the future!');
+          }
+
+          account.token = ''; // reset token after authorizing
+          account.save(); // save to database
+          
         }else res.send('The link has expired or there is no such account!');
     })
 })
 
+// listen for connections
 app.listen(app.get('port'), ()=>{
-    console.log("Server started!");
+    console.log(`[Express] Server listening on port ${app.get('port')}!`);
 })
 
 
 /* HELPERS */
 function checkLogin(req, res, next){
-    if(req.session.logged){
+    if(req.session.logged){ // if user is logged proceed to the requested page
       return next();
-    }else {
+    }else { // otherwise force user to log in
       return res.redirect('/login');
     }
 }
 
-function sendActivationMail(recipient, url){
-  mailer.sendMail({
-    from: process.env.mailerUser,
-    to: recipient,
-    subject: 'Account created!',
-    text: `Welcome! You can activate your account here: http://${url}`,
-    html: `<div>
-              <h1>Welcome!</h1>
-              To activate your account click <a href='http://${url}'>here</a><br>
-              (The link is only active for 30 minutes)
-            </div>`
-  })
-}
-
+// generate a token for athorizing various actions via email
 async function generateToken(){
     let account = true;
 
     while(account){ // generate new token as long as it's not unique
 
       var token = (await crypto.randomBytes(30)).toString('hex');
-      account = await Account.findOne({activationKey: token});
+      account = await Account.findOne({token: token});
     }
     return token;
 }
