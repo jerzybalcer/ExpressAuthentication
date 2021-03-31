@@ -37,9 +37,14 @@ app.get('/login', (req, res)=>{
     res.sendFile(__dirname+'/login.html');
 })
 
-// user's content
+// user's content page
 app.get('/content', checkLogin, (req, res)=>{
     res.sendFile(__dirname+'/content.html');
+})
+
+// get account details
+app.get('/accountDetails', [checkLogin, isActivated], (req, res)=>{
+    res.json(req.session.account);   
 })
 
 // login form handler
@@ -128,6 +133,16 @@ function checkLogin(req, res, next){
     }else { // otherwise force user to log in
       return res.redirect('/login');
     }
+}
+
+function isActivated(req, res, next){
+  Account.findOne({email: req.session.user}, (error, account)=>{
+    if(error || !account) return res.sendStatus(404);
+    if(!account.activated) return res.sendStatus(403);
+
+    req.session.account = account;
+    next();
+  })  
 }
 
 // generate a token for athorizing various actions via email
