@@ -135,13 +135,14 @@ function checkLogin(req, res, next){
     }
 }
 
+// check if user activated his account
 function isActivated(req, res, next){
   Account.findOne({email: req.session.user}, (error, account)=>{
-    if(error || !account) return res.sendStatus(404);
-    if(!account.activated) return res.sendStatus(403);
+    if(error || !account) return res.sendStatus(404); // there's no such account or error occured
+    if(!account.activated) return res.sendStatus(403); // account not activated, block further access!
 
-    req.session.account = account;
-    next();
+    req.session.account = account; // save account object to session variable
+    next(); // passed, go to next middleware
   })  
 }
 

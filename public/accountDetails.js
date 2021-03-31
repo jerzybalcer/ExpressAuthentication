@@ -1,7 +1,8 @@
 $(document).ready(()=>{
     $.get('/accountDetails')
         .done((res)=>{
-            console.log(res);
+            $('#accountDetails').append(`<h4> Your account details </h4>`);
+            $('#accountDetails').append(`<p> Email: ${res.email} </p>`);
         })
         .fail((res)=>{
             if(res.status === 404)
