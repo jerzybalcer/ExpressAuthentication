@@ -37,6 +37,14 @@ app.get('/login', (req, res)=>{
     res.sendFile(__dirname+'/login.html');
 })
 
+// Clear session data
+app.get('/logout', (req, res)=>{
+  req.session.logged = false;
+  req.session.user = '';
+  req.session.account = {};
+  res.sendFile(__dirname+'/login.html');
+})
+
 // user's content page
 app.get('/content', checkLogin, (req, res)=>{
     res.sendFile(__dirname+'/content.html');
