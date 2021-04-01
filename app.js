@@ -2,9 +2,9 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const Account = require('./accountSchema');
-const mongoDB = require('./database');
-const mailer = require('./mailer');
+const Account = require('./database/accountSchema.js');
+const mongoDB = require('./database/database.js');
+const mailer = require('./mailer.js');
 
 const thirtyMinutes = 1800000;
 
@@ -29,12 +29,12 @@ app.use(session({
 
 // main page, if logged in show user's content
 app.get('/', checkLogin, (req, res)=>{
-    res.sendFile(__dirname+'/content.html');
+    res.sendFile(__dirname+'/html/content.html');
 })
 
 // login page
 app.get('/login', (req, res)=>{
-    res.sendFile(__dirname+'/login.html');
+    res.sendFile(__dirname+'/html/login.html');
 })
 
 // Clear session data
@@ -42,12 +42,12 @@ app.get('/logout', (req, res)=>{
   req.session.logged = false;
   req.session.user = '';
   req.session.account = {};
-  res.sendFile(__dirname+'/login.html');
+  res.sendFile(__dirname+'/html/login.html');
 })
 
 // user's content page
 app.get('/content', checkLogin, (req, res)=>{
-    res.sendFile(__dirname+'/content.html');
+    res.sendFile(__dirname+'/html/content.html');
 })
 
 // get account details
