@@ -1,9 +1,10 @@
 const express = require('express');
 const session = require('express-session');
+const mongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const Account = require('./database/accountSchema.js');
-const mongoDB = require('./database/database.js');
+const mongoose = require('./database/database.js');
 const mailer = require('./mailer.js');
 
 const thirtyMinutes = 1800000;
@@ -19,11 +20,15 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}))
 
 app.use(session({
+  store: mongoStore.create({
+    mongoUrl: process.env.mongo_url,
+    autoRemove: 'native'
+  }),
 	secret: 'secret',
 	resave: true,
-	saveUninitialized: true
+	saveUninitialized: false,
+  //secure: true /* use with HTTPS */
 }));
-
 
 /* ROUTES */
 
@@ -39,9 +44,7 @@ app.get('/login', (req, res)=>{
 
 // Clear session data
 app.get('/logout', (req, res)=>{
-  req.session.logged = false;
-  req.session.user = '';
-  req.session.account = {};
+  req.session.destroy();
   res.sendFile(__dirname+'/html/login.html');
 })
 
@@ -132,7 +135,6 @@ app.get('/authorize', (req, res)=>{
 app.listen(app.get('port'), ()=>{
     console.log(`[Express] Server listening on port ${app.get('port')}!`);
 })
-
 
 /* HELPERS */
 function checkLogin(req, res, next){
