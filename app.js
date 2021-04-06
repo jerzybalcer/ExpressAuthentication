@@ -17,7 +17,7 @@ app.use(express.urlencoded({extended: true}))
 
 app.use(session({
   store: mongoStore.create({
-    mongoUrl: process.env.mongo_url,
+    mongoUrl: process.env.mongoUrl,
     autoRemove: 'native'
   }),
 	secret: 'secret',
